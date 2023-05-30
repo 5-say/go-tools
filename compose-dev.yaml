@@ -1,5 +1,8 @@
+# https://docs.docker.com/compose/compose-file/
 services:
-  app:
+
+  main:
+    container_name: go-tools
     entrypoint:
       - sleep
       - infinity
@@ -13,4 +16,4 @@ services:
 
 volumes:
   go:
-    name: "go"
+    external: true
