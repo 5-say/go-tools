@@ -7,29 +7,49 @@ import (
 	"strings"
 )
 
+// SimpleRandomConfig ..
+type SimpleRandomConfig struct {
+	MapShifting       int64 // 字典偏移，任意大于零的随机数
+	ConfusionShifting int64 // 混淆偏移，任意大于零的随机数
+	ValueShifting     int64 // 数值偏移，任意大于零的随机数
+}
+
 // simpleRandom ..
 type simpleRandom struct {
 	crossoverMap   map[string]string // 交叉字典
 	confusionSlice []string          // 混淆字典
+	valueShifting  int64             // 数值偏移，任意大于零的随机数
 }
 
 // Simple ..
-func Simple() simpleRandom {
+func Simple(config SimpleRandomConfig) simpleRandom {
+	var (
+		keys   = strings.Split("0123456789abcdefghijklmnopqrstuvwxyz", "")
+		values = strings.Split("bd7hij8n3op9ak5l1mef0sct4uvw6gxyz2qr", "")
+
+		shifting        int64 = config.MapShifting % 36        // 字典偏移
+		confusionLenght int64 = 8 + config.ConfusionShifting%7 // 混淆长度
+
+		crossoverSlice = append(values[shifting:], values[:shifting]...)[confusionLenght:]
+		confusionSlice = append(values[shifting:], values[:shifting]...)[:confusionLenght]
+		crossoverMap   = map[string]string{}
+	)
+
+	for k, v := range keys[:36-confusionLenght] {
+		crossoverMap[v] = crossoverSlice[k]
+	}
+
 	return simpleRandom{
-		crossoverMap: map[string]string{
-			"0": "h", "1": "8", "2": "d", "3": "6", "4": "g", "5": "b", "6": "0", "7": "5", "8": "a",
-			"9": "7", "a": "1", "b": "e", "c": "4", "d": "c", "e": "2", "f": "9", "g": "f", "h": "3",
-		},
-		confusionSlice: []string{
-			"j", "k", "l", "m", "n", "q", "r", "t", "v", "w", "x", "y", "z",
-		},
+		crossoverMap:   crossoverMap,
+		confusionSlice: confusionSlice,
+		valueShifting:  config.ValueShifting % 51,
 	}
 }
 
 // Encode .. 数值可逆编码，混淆输出 大写英文 + 数字，解码时不区分大小写
 func (s simpleRandom) Encode(number int64, minLength int) (randomCode string) {
 	// 进制转换
-	encodeStr := strconv.FormatInt(number, len(s.crossoverMap))
+	encodeStr := strconv.FormatInt(number+s.valueShifting, len(s.crossoverMap))
 
 	// 执行交叉
 	encodeSlice := strings.Split(encodeStr, "")
@@ -87,5 +107,5 @@ func (s simpleRandom) Decode(randomCode string) (decodeNumber int64) {
 	decodeNumber, _ = strconv.ParseInt(decodeStr, len(s.crossoverMap), 64)
 
 	// 返回解码后的 int64
-	return decodeNumber
+	return decodeNumber - s.valueShifting
 }
