@@ -1,19 +1,18 @@
 package ip
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"strings"
 )
 
 // GetRequestIP .. 获取客户端 IP 地址
-func GetRequestIP(r *http.Request) (ip string, err error) {
+func GetRequestIP(r *http.Request) (ip string) {
 	// 从请求头部的 X-REAL-IP 获取 IP
 	ip = r.Header.Get("X-REAL-IP")
 	netIP := net.ParseIP(ip)
 	if netIP != nil {
-		return ip, nil
+		return ip
 	}
 
 	// 从请求头部的 X-FORWARDED-FOR 获取 IP
@@ -22,19 +21,19 @@ func GetRequestIP(r *http.Request) (ip string, err error) {
 	for _, ip := range splitIps {
 		netIP := net.ParseIP(ip)
 		if netIP != nil {
-			return ip, nil
+			return ip
 		}
 	}
 
 	// 从请求头部的 RemoteAddr 获取 IP
-	ip, _, err = net.SplitHostPort(r.RemoteAddr)
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	netIP = net.ParseIP(ip)
 	if netIP != nil {
-		return ip, nil
+		return ip
 	}
 
-	return "", fmt.Errorf("正确ip获取失败")
+	return ""
 }
