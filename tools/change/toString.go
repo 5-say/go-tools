@@ -1,6 +1,9 @@
 package change
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // ToString ..
 func ToString[T any](input T) string {
@@ -8,13 +11,13 @@ func ToString[T any](input T) string {
 		t interface{} = input
 	)
 	switch v := t.(type) {
-	case int:
-		return strconv.FormatInt(int64(v), 10)
+	case int, uint, int8, uint8, int16, uint16, int32, uint32:
+		return fmt.Sprint(v)
 	case int64:
 		return strconv.FormatInt(v, 10)
 	case string:
 		return v
 	default:
-		return ""
+		return fmt.Sprint(v)
 	}
 }
