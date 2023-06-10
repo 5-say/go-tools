@@ -26,10 +26,19 @@ func RPCErrorCode(privateMessage, publicMessage string, code codes.Code) error {
 
 // RPCErrorParse .. 解析 rpc error
 func RPCErrorParse(err error) CustomRPCError {
-	errorDesc := strings.Split(grpc.ErrorDesc(err), "{[']}")
+	if err == nil {
+		panic("parameter err cannot be nil")
+	}
+	var (
+		publicMessage = ""
+		errorDesc     = strings.Split(grpc.ErrorDesc(err), "{[']}")
+	)
+	if len(errorDesc) > 1 {
+		publicMessage = errorDesc[1]
+	}
 	return CustomRPCError{
 		Code:           grpc.Code(err),
 		PrivateMessage: errorDesc[0],
-		PublicMessage:  errorDesc[1],
+		PublicMessage:  publicMessage,
 	}
 }
